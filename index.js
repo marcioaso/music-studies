@@ -13,10 +13,7 @@ const formulas = {
 var utils = {
     sustAbs: function(bemolNote) {
         if(bemolNote.match(/#/)) return bemolNote;
-        let bNotes = this.multiply(notesBemol,2);
-        let sNotes = this.multiply(notesSust,2);
-        let bIndex = bNotes.indexOf(bemolNote);
-        return sNotes[bIndex];
+        return notesSust[notesBemol.indexOf(bemolNote)];
     },
     tailhead: function(arr,start) {
         let index = arr.indexOf(start);
