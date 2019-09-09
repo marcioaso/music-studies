@@ -87,7 +87,7 @@ const services = {
                     return g+"|";
                 })
                 .replace(/^([A-G](b|#)?)/,'$1|')
-                
+
             noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
 
             
@@ -117,6 +117,3 @@ const services = {
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
-
-console.log(services.note("D5"))
-console.log(services.note("Dmaj7"))
