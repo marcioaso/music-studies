@@ -22,7 +22,31 @@ const formulas = {
                 return g+"|";
             }
         },
-        { reg:/^([A-G](b|#)?)/, rep:'$1|' }
+        { reg:/^([A-G](#|b)?)m/,
+            rep: function(triad,_,g) {
+                triad[1] = utils.voice(triad[0],'b3');
+                return g+"|";
+            }
+        },
+        { reg:/^([A-G](#|b)?)(half-dim)/,
+            rep: function(triad,_,g) {
+                triad[1] = utils.voice(triad[0],'b3');
+                triad[2] = utils.voice(triad[0],'b5');
+                triad[3] = utils.voice(triad[0],'b7');
+                return g+"|"
+            }
+        },
+        { reg:/^([A-G](#|b)?)(°|o|dim)/,
+            rep: function(triad,_,g) {
+                triad[1] = utils.voice(triad[0],'b3');
+                triad[2] = utils.voice(triad[0],'b5');
+                triad[3] = utils.voice(triad[0],'6');
+                return g+"|"
+            }
+        },
+        { reg:/^([A-G](b|#)?)/, rep:'$1|' },
+        { reg: /(\|+)/g, rep:'|'},
+        { reg:/\|$/, rep:''}
     ]
 };
 
@@ -101,7 +125,7 @@ const services = {
                     })
                 }
             })
-            noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
+            noteArr = noteArr.split("|");
             noteArr.shift(); // dominant note
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
         }
@@ -128,3 +152,8 @@ const services = {
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
+
+console.log(services.note("Chalf-dim"))
+console.log(services.note("C°"))
+console.log(services.note("C#°"))
+console.log(services.note("Db°"))
