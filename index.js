@@ -3,11 +3,11 @@ const notesAbs = ["C","D","E","F","G","A","B"];
 const notesBemol = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 const notesSust = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const formulas = {
-    scales:{
-        M:["t","t","st","t","t","st"], // major natural
-        m:["t","st","t","t","t","st"]  // minor natural
-    },
-    triad:["0","3","5"],
+    scales:[
+        ["t","t","s","t","t","t","s"], // major natural
+        ["t","s","t","t","s","t","t"]  // minor natural
+    ],
+    triad:["1","3","5"],
 };
 
 var utils = {
@@ -18,13 +18,14 @@ var utils = {
         }
         return ret;
     },
-    string: function(init,size = 12) {
+    string: function(init,size = 12,bemol = false) {
         init = init.toUpperCase();
         let output = [];
-        let index = notesSust.indexOf(init), count = 0;
+        let arr = bemol?notesBemol:notesSust;
+        let index = arr.indexOf(init), count = 0;
         while(output.length < size) {
-            if(!notesSust[index+count]) count = index = 0;
-            output.push(notesSust[index+count]);
+            if(!arr[index+count]) count = index = 0;
+            output.push(arr[index+count]);
             count++;
         }
         return output;
@@ -42,9 +43,12 @@ var utils = {
     voice: function(note,variation,isTriad) {
         let v = note.match(/[A-G](#|b)/);
         let string;
-        if(v && isTriad) { // # e b
+        if(v) { // # e b
+            if(variation == '1') return this.sustAbs(note);
             string = this.string(this.sustAbs(note),24);
-            return string[variation];
+            let entry = v[1]+variation;
+            entry = entry.replace(/(b#|#b)/,'')
+            return this.voice(note.replace(/(b|#)/,''),entry);
         }
 
         let th = this.multiply(this.tailhead(notesAbs,note),10);
@@ -72,40 +76,47 @@ const services = {
         if(str.length > 1) {
             let noteArr = str
                 .replace(/\//g,'|')
-                .replace(/maj(\d+)/ig,'|#$1|')
-                .replace(/(\d+)\+/ig,'|#$1|')
-                .replace(/add(\d)/ig,'|$1|')
-                .replace(/(\d)\/(\d)/ig,'|$1|$2|')
-                .replace(/flat(\d)/ig,'|b$1|')
+                .replace(/(\d{1,2})M/,'|#$1|')
+                .replace(/maj(\d{1,2})/ig,'|#$1|')
+                .replace(/(\d{1,2})\+/ig,'|#$1|')
+                .replace(/add(\d{1,2})/ig,'|$1|')
+                .replace(/flat(\d{1,2})/ig,'|b$1|')
+                .replace(/sharp(\d{1,2})/ig,'|#$1|')
                 .replace(/^([A-G](#|b)?)m/,function(_,g) {
                     triad[1] = utils.voice(triad[0],'b3');
                     return g+"|";
                 })
-                .replace(/\//g,'|')
-                .replace(/[^b#](\d+)/g,'|$1|');
-    
+                .replace(/^([A-G](b|#)?)/,'$1|')
+                
             noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
+
+            
             noteArr.shift(); // major note
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
         }
         return triad;
     },
-    scale: function(init = "c", scaleType = 0) {
-        const string = utils.string(init,14)
-        let ret = [], semitones = formulas[scaleType];
-        let i = 0, count = 0;
+    scale: function(init = "C",bemol = false) {
+        let scaleType = init.match(/([A-G])(m)?/);
+        if(scaleType[2]) {
+            init = scaleType[1];
+            scaleType = 1;
+        } else {
+            scaleType = 0;
+        }
+        const string = utils.string(init,14,bemol)
+        let ret = [init], semitones = formulas.scales[scaleType].slice();
+        let i = 0,count = 0;
         while(ret.length < 7) {
+            let sum = semitones[count] == 's'?1:2;
+            i += sum
             ret.push(string[i]);
-            i += semitones[count];
             count++;
         }
         return ret.concat(init.toUpperCase()).join(" ");
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
-console.log(services.note("C"))
-console.log(services.note("Cm"))
-console.log(services.note("C7"))
-console.log(services.note("Cm7"))
-console.log(services.note("Cm7+"))
-console.log(services.note("C7/9"))
+
+console.log(services.note("D5"))
+console.log(services.note("Dmaj7"))
