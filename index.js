@@ -11,6 +11,24 @@ const formulas = {
 };
 
 var utils = {
+    multiply: function(arr,number) {
+        let ret = arr.slice();
+        for(var i = 0; i < number; i++) {
+            ret = ret.concat(arr.slice());
+        }
+        return ret;
+    },
+    string: function(init,size = 12) {
+        init = init.toUpperCase();
+        let output = [];
+        let index = notesSust.indexOf(init), count = 0;
+        while(output.length < size) {
+            if(!notesSust[index+count]) count = index = 0;
+            output.push(notesSust[index+count]);
+            count++;
+        }
+        return output;
+    },
     sustAbs: function(bemolNote) {
         if(bemolNote.match(/#/)) return bemolNote;
         return notesSust[notesBemol.indexOf(bemolNote)];
@@ -20,13 +38,6 @@ var utils = {
         let ret = arr.slice();
         let tail = ret.splice(index,arr.length)
         return tail.concat(ret);
-    },
-    multiply: function(arr,number) {
-        let ret = arr.slice();
-        for(var i = 0; i < number; i++) {
-            ret = ret.concat(arr.slice());
-        }
-        return ret;
     },
     voice: function(note,variation,isTriad) {
         let v = note.match(/[A-G](#|b)/);
@@ -51,33 +62,10 @@ var utils = {
         
         variatedNote = string.indexOf(variatedNote)+sum;
         return string[variatedNote];
-    },
-    string: function(init,size = 12) {
-        init = init.toUpperCase();
-        let output = [];
-        let index = notesSust.indexOf(init), count = 0;
-        while(output.length < size) {
-            if(!notesSust[index+count]) count = index = 0;
-            output.push(notesSust[index+count]);
-            count++;
-        }
-        return output;
     }
 }
 
 const services = {
-    scale: function(init = "c", scaleType = 0) {
-        const string = utils.string(init,14)
-        let ret = [], semitones = formulas[scaleType];
-        let i = 0, count = 0;
-        while(ret.length < 7) {
-            ret.push(string[i]);
-            i += semitones[count];
-            count++;
-        }
-        return ret.concat(init.toUpperCase()).join(" ");
-    },
-    tabs: () => tunning.slice().map(init => utils.string(init)),
     note: (str) => {
         let firstNote = str.match(/^([A-G])(b|#)?/)[0];
         let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
@@ -101,7 +89,19 @@ const services = {
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
         }
         return triad;
-    }
+    },
+    scale: function(init = "c", scaleType = 0) {
+        const string = utils.string(init,14)
+        let ret = [], semitones = formulas[scaleType];
+        let i = 0, count = 0;
+        while(ret.length < 7) {
+            ret.push(string[i]);
+            i += semitones[count];
+            count++;
+        }
+        return ret.concat(init.toUpperCase()).join(" ");
+    },
+    tabs: () => tunning.slice().map(init => utils.string(init))
 }
 console.log(services.note("C"))
 console.log(services.note("Cm"))
