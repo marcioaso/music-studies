@@ -79,38 +79,36 @@ const services = {
             count++;
         }
         return ret.concat(init.toUpperCase()).join(" ");
+    },
+    tabs: () => tunning.slice().map(init => utils.string(init)),
+    note: (str) => {
+        let firstNote = str.match(/^([A-G])(b|#)?/)[0];
+        let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
+        if(str.length > 1) {
+            let noteArr = str
+                .replace(/\//g,'|')
+                .replace(/maj(\d+)/ig,'|#$1|')
+                .replace(/(\d+)\+/ig,'|#$1|')
+                .replace(/add(\d)/ig,'|$1|')
+                .replace(/(\d)\/(\d)/ig,'|$1|$2|')
+                .replace(/flat(\d)/ig,'|b$1|')
+                .replace(/^([A-G](#|b)?)m/,function(_,g) {
+                    triad[1] = utils.voice(triad[0],'b3');
+                    return g+"|";
+                })
+                .replace(/\//g,'|')
+                .replace(/[^b#](\d+)/g,'|$1|');
+    
+            noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
+            noteArr.shift(); // major note
+            triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
+        }
+        return triad;
     }
 }
-
-const tabs = () => tunning.slice().map(init => utils.string(init));
-
-function note(str) {
-    let firstNote = str.match(/^([A-G])(b|#)?/)[0];
-    let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
-    if(str.length > 1) {
-        let noteArr = str
-            .replace(/\//g,'|')
-            .replace(/maj(\d+)/ig,'|#$1|')
-            .replace(/(\d+)\+/ig,'|#$1|')
-            .replace(/add(\d)/ig,'|$1|')
-            .replace(/(\d)\/(\d)/ig,'|$1|$2|')
-            .replace(/flat(\d)/ig,'|b$1|')
-            .replace(/^([A-G](#|b)?)m/,function(_,g) {
-                triad[1] = utils.voice(triad[0],'b3');
-                return g+"|";
-            })
-            .replace(/\//g,'|')
-            .replace(/[^b#](\d+)/g,'|$1|');
-
-        noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
-        noteArr.shift(); // major note
-        triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
-    }
-    return triad;
-}
-console.log(note("C"))
-console.log(note("Cm"))
-console.log(note("C7"))
-console.log(note("Cm7"))
-console.log(note("Cm7+"))
-console.log(note("C7/9"))
+console.log(services.note("C"))
+console.log(services.note("Cm"))
+console.log(services.note("C7"))
+console.log(services.note("Cm7"))
+console.log(services.note("Cm7+"))
+console.log(services.note("C7/9"))
