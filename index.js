@@ -8,6 +8,22 @@ const formulas = {
         ["t","s","t","t","s","t","t"]  // minor natural
     ],
     triad:["1","3","5"],
+    rules: [
+        { reg:/\//g, rep: '|' },
+        { reg:/(\d{1,2})M/, rep:'|#$1|'},
+        { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
+        { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
+        { reg:/add(\d{1,2})/ig, rep:'|$1|'},
+        { reg:/flat(\d{1,2})/ig, rep:'|b$1|'},
+        { reg:/sharp(\d{1,2})/ig,rep: '|#$1|'},
+        { reg:/^([A-G](#|b)?)m/,
+            rep: function(triad,_,g) {
+                triad[1] = utils.voice(triad[0],'b3');
+                return g+"|";
+            }
+        },
+        { reg:/^([A-G](b|#)?)/, rep:'$1|' }
+    ]
 };
 
 var utils = {
@@ -74,24 +90,19 @@ const services = {
         let firstNote = str.match(/^([A-G])(b|#)?/)[0];
         let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
         if(str.length > 1) {
-            let noteArr = str
-                .replace(/\//g,'|')
-                .replace(/(\d{1,2})M/,'|#$1|')
-                .replace(/maj(\d{1,2})/ig,'|#$1|')
-                .replace(/(\d{1,2})\+/ig,'|#$1|')
-                .replace(/add(\d{1,2})/ig,'|$1|')
-                .replace(/flat(\d{1,2})/ig,'|b$1|')
-                .replace(/sharp(\d{1,2})/ig,'|#$1|')
-                .replace(/^([A-G](#|b)?)m/,function(_,g) {
-                    triad[1] = utils.voice(triad[0],'b3');
-                    return g+"|";
-                })
-                .replace(/^([A-G](b|#)?)/,'$1|')
-
+            let noteArr = str;
+            formulas.rules.forEach(each => {
+                if(typeof each.rep == 'string') {
+                    noteArr = noteArr.replace(each.reg,each.rep)
+                } else {
+                    noteArr = noteArr.replace(each.reg,function() {
+                        let args = [].slice.call(arguments);
+                        return each.rep.apply(null,[triad].concat(args));
+                    })
+                }
+            })
             noteArr = noteArr.replace(/(\|+)/g,'|').replace(/\|$/,'').split("|");
-
-            
-            noteArr.shift(); // major note
+            noteArr.shift(); // dominant note
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
         }
         return triad;
