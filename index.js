@@ -22,6 +22,7 @@ const formulas = {
     ],
     triad:["1","3","5"],
     rules: [
+        { reg:/\/(\d{1,2})/, rep: '|$1|'},
         { reg:/(\d{1,2})M/, rep:'|#$1|'},
         { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
         { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
