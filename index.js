@@ -2,18 +2,7 @@ const tunning = ["E","A","D","B","E"];
 const notesAbs = ["C","D","E","F","G","A","B"];
 const notesBemol = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 const notesSust = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-const toneDistanceTable = {
-    '1':0,
-    '2':2,
-    '3':4,
-    '4':5,
-    '5':7,
-    '6':9,
-    '7':10,
-    '9':13,
-    '11':16,
-    '13': 20
-};
+const toneDistanceTable = {'1':0,'2':2,'3':4,'4':5,'5':7,'6':9,'7':10,'9':13,'11':16,'13': 20};
 
 const formulas = {
     scales:[
