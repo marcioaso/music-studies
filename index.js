@@ -50,7 +50,7 @@ const formulas = {
             rep: function(triad,_,g) {
                 triad[1] = utils.voice(triad[0],'b3');
                 triad[2] = utils.voice(triad[0],'b5');
-                triad[3] = utils.voice(triad[0],'6');
+                triad[3] = utils.voice(triad[0],'bb7');
                 return g+"|"
             }
         },
