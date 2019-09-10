@@ -38,19 +38,19 @@ const formulas = {
                 return g+"|";
             }
         },
-        { reg:/^([A-G](#|b)?)(half-dim)/,
-            rep: function(triad,_,g) {
+        { reg:/^([A-G](#|b)?)(half-dim)(\d{1,2})?/,
+            rep: function(triad,a,b) {
                 triad[1] = utils.voice(triad[0],'b3');
                 triad[2] = utils.voice(triad[0],'b5');
-                triad[3] = utils.voice(triad[0],'b7');
-                return g+"|"
+                triad[3] = utils.voice(triad[0],`7`);
+                return b+"|"
             }
         },
-        { reg:/^([A-G](#|b)?)(°|o|dim)(\d{1,2})/,
+        { reg:/^([A-G](#|b)?)(°|o|dim)(\d{1,2})?/,
             rep: function(triad,a,b,c,d,e) {
                 triad[1] = utils.voice(triad[0],'b3');
                 triad[2] = utils.voice(triad[0],'b5');
-                if(e) triad[3] = utils.voice(triad[0],`bb{${e}}`)
+                if(e) triad[3] = utils.voice(triad[0],`bb${e}`)
                 return b+"|"
             }
         },
@@ -80,9 +80,18 @@ var utils = {
         }
         return output;
     },
-    sustAbs: function(bemolNote) {
-        if(bemolNote.match(/#/)) return bemolNote;
-        return notesSust[notesBemol.indexOf(bemolNote)];
+    notation: function(note,toBemol = false) {
+        let isBemol = !!note.match(/b/);
+        if(isBemol && toBemol || !isBemol && !toBemol) return note;
+        let from, to;
+        if(toBemol) {
+            from = notesSust;
+            to = notesBemol
+        } else {
+            from = notesBemol
+            to = notesSust
+        }
+        return to[from.indexOf(note)];
     },
     tailhead: function(arr,start) {
         let index = arr.indexOf(start);
@@ -106,7 +115,7 @@ var utils = {
 }
 
 const services = {
-    note: (str) => {
+    note: (str,bemol = false) => {
         let firstNote = str.match(/^([A-G])(b|#)?/)[0];
         let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
         if(str.replace(/(#|b)/g,'').length > 1) {
@@ -125,7 +134,7 @@ const services = {
             noteArr.shift(); // dominant note
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
         }
-        return triad;
+        return bemol? triad.map(each => utils.notation(each,true)):triad;
     },
     scale: function(init="C", bemol=false) {
         let scaleType = init.match(/([A-G])(m)?/);
@@ -148,4 +157,3 @@ const services = {
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
-console.log(services.note("Cdim7"))
