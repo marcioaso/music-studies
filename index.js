@@ -2,6 +2,19 @@ const tunning = ["E","A","D","B","E"];
 const notesAbs = ["C","D","E","F","G","A","B"];
 const notesBemol = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 const notesSust = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const toneDistanceTable = {
+    '1':0,
+    '2':2,
+    '3':4,
+    '4':5,
+    '5':7,
+    '6':9,
+    '7':10,
+    '9':13,
+    '11':16,
+    '13': 20
+};
+
 const formulas = {
     scales:[
         ["t","t","s","t","t","t","s"], // major natural
@@ -9,7 +22,12 @@ const formulas = {
     ],
     triad:["1","3","5"],
     rules: [
-        { reg:/\//g, rep: '|' },
+        { reg:/\/(\d{1,2})/g, 
+            rep: function(triad,_,g) {
+                triad[2] = utils.voice(triad[0],g);
+                return `|`
+            } 
+        },
         { reg:/(\d{1,2})M/, rep:'|#$1|'},
         { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
         { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
@@ -22,7 +40,7 @@ const formulas = {
                 return g+"|";
             }
         },
-        { reg:/^([A-G](#|b)?)m/,
+        { reg:/^([A-G](#|b)?)m(in)?/,
             rep: function(triad,_,g) {
                 triad[1] = utils.voice(triad[0],'b3');
                 return g+"|";
@@ -51,6 +69,16 @@ const formulas = {
 };
 
 var utils = {
+    buildToneDistanceTable: function() {
+        let string = this.string("D",60);
+        let arr = [
+            string[toneDistanceTable['1']],
+            string[toneDistanceTable['3']],
+            string[toneDistanceTable['5']],
+            string[toneDistanceTable['7']]
+        ]
+        console.log(arr,toneDistanceTable);
+    },
     multiply: function(arr,number) {
         let ret = arr.slice();
         for(var i = 0; i < number; i++) {
@@ -108,6 +136,7 @@ var utils = {
         return string[variatedNote];
     }
 }
+utils.buildToneDistanceTable();
 
 const services = {
     note: (str) => {
@@ -153,7 +182,10 @@ const services = {
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
 
-console.log(services.note("Chalf-dim"))
-console.log(services.note("C°"))
-console.log(services.note("C#°"))
-console.log(services.note("Db°"))
+console.log(services.note("Dmin7"))
+//console.log(services.note("C7"))
+//console.log(services.note("Cm"))
+//console.log(services.note("Cm7"))
+//console.log(services.note("Cm7+"))
+//console.log(services.note("C7/9"))
+//console.log(services.note("C°"))
