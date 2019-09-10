@@ -32,8 +32,6 @@ const formulas = {
         { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
         { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
         { reg:/add(\d{1,2})/ig, rep:'|$1|'},
-        { reg:/flat(\d{1,2})/ig, rep:'|b$1|'},
-        { reg:/sharp(\d{1,2})/ig,rep: '|#$1|'},
         { reg:/^([A-G](#|b)?)m(in)?/,
             rep: function(triad,_,g) {
                 triad[1] = utils.voice(triad[0],'b3');
