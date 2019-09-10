@@ -22,12 +22,6 @@ const formulas = {
     ],
     triad:["1","3","5"],
     rules: [
-        { reg:/\/(\d{1,2})/g, 
-            rep: function(triad,_,g) {
-                triad[2] = utils.voice(triad[0],g);
-                return `|`
-            } 
-        },
         { reg:/(\d{1,2})M/, rep:'|#$1|'},
         { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
         { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
@@ -119,7 +113,13 @@ const services = {
         let firstNote = str.match(/^([A-G])(b|#)?/)[0];
         let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
         if(str.replace(/(#|b)/g,'').length > 1) {
+            let secondMajor;
             let noteArr = str;
+            noteArr = noteArr.replace(/\/([A-G](b|#)?)/,function(m,g) {
+                secondMajor = g;
+                return ''
+            })
+
             formulas.rules.forEach(each => {
                 if(typeof each.rep == 'string') {
                     noteArr = noteArr.replace(each.reg,each.rep)
@@ -133,6 +133,9 @@ const services = {
             noteArr = noteArr.split("|");
             noteArr.shift(); // dominant note
             triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
+            if(secondMajor) {
+                triad.unshift(secondMajor);
+            }
         }
         return bemol? triad.map(each => utils.notation(each,true)):triad;
     },
