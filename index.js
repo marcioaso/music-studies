@@ -5,15 +5,18 @@ const notesSust = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 const toneDistanceTable = {'1':0,'2':2,'3':4,'4':5,'5':7,'6':9,'7':10,'9':13,'11':16,'13': 20};
 
 const formulas = {
-    scales:[
-        ["t","t","s","t","t","t","s"], // major natural
-        ["t","t","s","t","s","st","s"], // major harmonic
-        ["t","t","s","t","s","t","t"], // major natural
-
-        ["t","s","t","t","s","t","t"],  // minor natural
-        ["t","s","t","t","s","st","s"],  // minor harmonic
-        ["t","s","t","t","t","t","s"]  // minor melodic
-    ],
+    scales:{
+        dict: { 's':1, 't':2, 'st':3 },
+        forms: [
+            ["t","t","s","t","t","t","s"], // major natural
+            ["t","t","s","t","s","st","s"], // major harmonic
+            ["t","t","s","t","s","t","t"], // major natural
+    
+            ["t","s","t","t","s","t","t"],  // minor natural
+            ["t","s","t","t","s","st","s"],  // minor harmonic
+            ["t","s","t","t","t","t","s"]  // minor melodic
+        ]
+    },
     triad:["1","3","5"],
     rules: [
         { reg:/\/(\d{1,2})/, rep: '|$1|'},
@@ -134,16 +137,10 @@ const services = {
     },
     scale: function(init="C", scaleType=0, bemol=false) {
         const string = utils.string(init,14,bemol)
-        let ret = [init], semitones = formulas.scales[scaleType].slice();
+        let ret = [init], semitones = formulas.scales.forms[scaleType].slice();
         let i = 0,count = 0;
-        let dict = {
-            's':1,
-            't':2,
-            'st':3
-        }
         while(ret.length < 8) {
-            let sum = dict[semitones[count]];
-            i += sum
+            i += formulas.scales.dict[semitones[count]]
             ret.push(string[i]);
             count++;
         }
