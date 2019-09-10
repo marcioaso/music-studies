@@ -47,15 +47,13 @@ const formulas = {
 var utils = {
     multiply: function(arr,number) {
         let ret = arr.slice();
-        for(var i = 0; i < number; i++) {
-            ret = ret.concat(arr.slice());
-        }
+        for(var i = 0; i < number; i++) ret = ret.concat(arr.slice());
         return ret;
     },
-    string: function(init,size = 12,bemol = false) {
+    string: function(init, size=12 , bemol=false) {
         init = init.toUpperCase();
         let output = [];
-        let arr = bemol?notesBemol:notesSust;
+        let arr = bemol? notesBemol : notesSust ;
         let index = arr.indexOf(init), count = 0;
         while(output.length < size) {
             if(!arr[index+count]) count = index = 0;
@@ -64,11 +62,11 @@ var utils = {
         }
         return output;
     },
-    notation: function(note,toBemol = false) {
+    notation: function(note, toBemol=false) {
         let isBemol = !!note.match(/b/);
-        if(isBemol && toBemol || !isBemol && !toBemol) return note;
+        if( isBemol && toBemol || !isBemol && !toBemol ) return note;
         let from, to;
-        if(toBemol) {
+        if( toBemol ) {
             from = notesSust;
             to = notesBemol
         } else {
