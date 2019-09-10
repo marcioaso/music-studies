@@ -7,7 +7,12 @@ const toneDistanceTable = {'1':0,'2':2,'3':4,'4':5,'5':7,'6':9,'7':10,'9':13,'11
 const formulas = {
     scales:[
         ["t","t","s","t","t","t","s"], // major natural
-        ["t","s","t","t","s","t","t"]  // minor natural
+        ["t","t","s","t","s","st","s"], // major harmonic
+        ["t","t","s","t","s","t","t"], // major natural
+
+        ["t","s","t","t","s","t","t"],  // minor natural
+        ["t","s","t","t","s","st","s"],  // minor harmonic
+        ["t","s","t","t","t","t","s"]  // minor melodic
     ],
     triad:["1","3","5"],
     rules: [
@@ -127,24 +132,22 @@ const services = {
         }
         return bemol? triad.map(each => utils.notation(each,true)):triad;
     },
-    scale: function(init="C", bemol=false) {
-        let scaleType = init.match(/([A-G])(m)?/);
-        if(scaleType[2]) {
-            init = scaleType[1];
-            scaleType = 1;
-        } else {
-            scaleType = 0;
-        }
+    scale: function(init="C", scaleType=0, bemol=false) {
         const string = utils.string(init,14,bemol)
         let ret = [init], semitones = formulas.scales[scaleType].slice();
         let i = 0,count = 0;
-        while(ret.length < 7) {
-            let sum = semitones[count] == 's'?1:2;
+        let dict = {
+            's':1,
+            't':2,
+            'st':3
+        }
+        while(ret.length < 8) {
+            let sum = dict[semitones[count]];
             i += sum
             ret.push(string[i]);
             count++;
         }
-        return ret.concat(init.toUpperCase()).join(" ");
+        return ret.join(" ");
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
