@@ -34,12 +34,6 @@ const formulas = {
         { reg:/add(\d{1,2})/ig, rep:'|$1|'},
         { reg:/flat(\d{1,2})/ig, rep:'|b$1|'},
         { reg:/sharp(\d{1,2})/ig,rep: '|#$1|'},
-        { reg:/^([A-G](#|b)?)m/,
-            rep: function(triad,_,g) {
-                triad[1] = utils.voice(triad[0],'b3');
-                return g+"|";
-            }
-        },
         { reg:/^([A-G](#|b)?)m(in)?/,
             rep: function(triad,_,g) {
                 triad[1] = utils.voice(triad[0],'b3');
@@ -50,7 +44,7 @@ const formulas = {
             rep: function(triad,_,g) {
                 triad[1] = utils.voice(triad[0],'b3');
                 triad[2] = utils.voice(triad[0],'b5');
-                triad[3] = utils.voice(triad[0],'b7');
+                triad[3] = utils.voice(triad[0],'7');
                 return g+"|"
             }
         },
@@ -69,16 +63,6 @@ const formulas = {
 };
 
 var utils = {
-    buildToneDistanceTable: function() {
-        let string = this.string("D",60);
-        let arr = [
-            string[toneDistanceTable['1']],
-            string[toneDistanceTable['3']],
-            string[toneDistanceTable['5']],
-            string[toneDistanceTable['7']]
-        ]
-        console.log(arr,toneDistanceTable);
-    },
     multiply: function(arr,number) {
         let ret = arr.slice();
         for(var i = 0; i < number; i++) {
@@ -108,41 +92,26 @@ var utils = {
         let tail = ret.splice(index,arr.length)
         return tail.concat(ret);
     },
-    voice: function(note,variation,isTriad) {
-        let v = note.match(/[A-G](#|b)/);
-        let string;
-        if(v) { // # e b
-            if(variation == '1') return this.sustAbs(note);
-            string = this.string(this.sustAbs(note),24);
-            let entry = v[1]+variation;
-            entry = entry.replace(/(b#|#b)/,'')
-            return this.voice(note.replace(/(b|#)/,''),entry);
+    voice: function(note,variation) {
+        let string = this.string(note,60);
+        let transpiled = variation.match(/\D/);
+        let distance;
+        if(!transpiled) {
+            distance = toneDistanceTable[variation];
+            return string[distance];
         }
-
-        let th = this.multiply(this.tailhead(notesAbs,note),10);
-        let voice = parseInt(variation);
-        let transpiled = isNaN(voice);
-        let voiceAbs = !+variation?1:variation;
-        if(!transpiled) return th[voiceAbs-1];
-        
-        voice = + variation.replace(/\D/g,'');
-
-        string = this.string(note,24);
-        string = this.tailhead(string,note)
-        let sum = {"bb":-2,"b":-1,"#":+1}[variation.replace(/\d/g,'')];
-        let variatedNote = th[voice-1];
-        
-        variatedNote = string.indexOf(variatedNote)+sum;
-        return string[variatedNote];
+        distance = variation.split(/(\d+)/).filter(each => each).sort((a,b) => a.match(/\d/)?-1:1);
+        distance[1] = distance[1] != '#'? distance[1] != 'bb'? -1: -2: +1;
+        let index = toneDistanceTable[distance[0]] + distance[1];
+        return string[index];
     }
 }
-utils.buildToneDistanceTable();
 
 const services = {
     note: (str) => {
         let firstNote = str.match(/^([A-G])(b|#)?/)[0];
         let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
-        if(str.length > 1) {
+        if(str.replace(/(#|b)/g,'').length > 1) {
             let noteArr = str;
             formulas.rules.forEach(each => {
                 if(typeof each.rep == 'string') {
@@ -160,7 +129,7 @@ const services = {
         }
         return triad;
     },
-    scale: function(init = "C",bemol = false) {
+    scale: function(init="C", bemol=false) {
         let scaleType = init.match(/([A-G])(m)?/);
         if(scaleType[2]) {
             init = scaleType[1];
@@ -181,11 +150,3 @@ const services = {
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
-
-console.log(services.note("Dmin7"))
-//console.log(services.note("C7"))
-//console.log(services.note("Cm"))
-//console.log(services.note("Cm7"))
-//console.log(services.note("Cm7+"))
-//console.log(services.note("C7/9"))
-//console.log(services.note("C°"))
