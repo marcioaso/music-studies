@@ -46,12 +46,12 @@ const formulas = {
                 return g+"|"
             }
         },
-        { reg:/^([A-G](#|b)?)(°|o|dim)/,
-            rep: function(triad,_,g) {
+        { reg:/^([A-G](#|b)?)(°|o|dim)(\d{1,2})/,
+            rep: function(triad,a,b,c,d,e) {
                 triad[1] = utils.voice(triad[0],'b3');
                 triad[2] = utils.voice(triad[0],'b5');
-                triad[3] = utils.voice(triad[0],'bb7');
-                return g+"|"
+                if(e) triad[3] = utils.voice(triad[0],`bb{${e}}`)
+                return b+"|"
             }
         },
         { reg:/^([A-G](b|#)?)/, rep:'$1|' },
@@ -148,3 +148,4 @@ const services = {
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
+console.log(services.note("Cdim7"))
