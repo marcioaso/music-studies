@@ -36,39 +36,7 @@ const formulas = {
         ]
     },
     triad:[1,3,5],
-    tetrad:[1,3,5,7],
-    rules: [
-        { reg:/\/(\d{1,2})/, rep: '|$1|'},
-        { reg:/(\d{1,2})M/, rep:'|#$1|'},
-        { reg:/maj(\d{1,2})/ig, rep:'|#$1|'},
-        { reg:/(\d{1,2})\+/ig, rep:'|#$1|'},
-        { reg:/add(\d{1,2})/ig, rep:'|$1|'},
-        { reg:/^([A-G](#|b)?)m(in)?/,
-            rep: function(triad,_,g) {
-                triad[1] = utils.voice(triad[0],'b3');
-                return g+"|";
-            }
-        },
-        { reg:/^([A-G](#|b)?)(half-dim)(\d{1,2})?/,
-            rep: function(triad,a,b) {
-                triad[1] = utils.voice(triad[0],'b3');
-                triad[2] = utils.voice(triad[0],'b5');
-                triad[3] = utils.voice(triad[0],`7`);
-                return b+"|"
-            }
-        },
-        { reg:/^([A-G](#|b)?)(°|o|dim)(\d{1,2})?/,
-            rep: function(triad,a,b,c,d,e) {
-                triad[1] = utils.voice(triad[0],'b3');
-                triad[2] = utils.voice(triad[0],'b5');
-                if(e) triad[3] = utils.voice(triad[0],`bb${e}`)
-                return b+"|"
-            }
-        },
-        { reg:/^([A-G](b|#)?)/, rep:'$1|' },
-        { reg: /(\|+)/g, rep:'|'},
-        { reg:/\|$/, rep:''}
-    ]
+    tetrad:[1,3,5,7]
 };
 
 var utils = {
