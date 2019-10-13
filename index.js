@@ -8,16 +8,35 @@ const formulas = {
     scales:{
         dict: { 's':1, 't':2, 'st':3 },
         forms: [
-            ["t","t","s","t","t","t","s"], // major natural
-            ["t","t","s","t","s","st","s"], // major harmonic
-            ["t","t","s","t","s","t","t"], // major natural
-    
-            ["t","s","t","t","s","t","t"],  // minor natural
-            ["t","s","t","t","s","st","s"],  // minor harmonic
-            ["t","s","t","t","t","t","s"]  // minor melodic
+            ["t","t","s","t","t","t","s"], //   0 major natural
+            ["t","s","t","t","s","t","t"],  //  1 minor natural
+
+            ["t","t","s","t","s","st","s"], //  2 major harmonic
+            ["t","s","t","t","s","st","s"],  // 3 minor harmonic
+
+            ["t","s","t","t","t","t","s"], //   4 melodic minor
+            
+            ["t","t","s","t","t","t","s"], //   5 diatonic ionian
+            ["t","s","t","t","t","s","t"], //   6 diatonic dorian
+
+            ["s","t","t","t","s","t","t"], //   7 diatonic phrygian
+            ["t","t","s","t","t","t","s"], //   8 diatonic lydian
+
+            ["t","t","s","t","t","s","t"], //   9 diatonic mixolydian
+            ["t","s","t","t","s","t","t"], //  10 diatonic aeolian
+            ["s","t","t","s","t","t","t"], //  11 diatonic locrian
+
+            ["t","s","t","t","t","t","s"], //  12 jazz melodic minor ascending
+            ["s","t","t","t","t","s","t"], //  13 jazz dorian b2
+            ["t","t","t","t","s","t","s"], //  14 jazz lydian augmented
+            ["t","t","t","s","t","s","t"], //  15 jazz lydian dominant
+            ["t","t","s","t","s","t","t"], //  16 jazz mixolydian b6
+            ["t","s","t","s","t","t","t"], //  17 jazz locrian
+            ["s","t","s","t","s","t","t"], //  18 jazz altered
         ]
     },
-    triad:["1","3","5"],
+    triad:[1,3,5],
+    tetrad:[1,3,5,7],
     rules: [
         { reg:/\/(\d{1,2})/, rep: '|$1|'},
         { reg:/(\d{1,2})M/, rep:'|#$1|'},
@@ -105,35 +124,85 @@ var utils = {
 }
 
 const services = {
-    note: (str,bemol = false) => {
-        let firstNote = str.match(/^([A-G])(b|#)?/)[0];
-        let triad = formulas.triad.map(variation => utils.voice(firstNote,variation,true));
-        if(str.replace(/(#|b)/g,'').length > 1) {
-            let secondMajor;
-            let noteArr = str;
-            noteArr = noteArr.replace(/\/([A-G](b|#)?)/,function(m,g) {
-                secondMajor = g;
-                return ''
+    chord: (raw) => { 
+        let str = raw
+            .replace(/\s/g,'')
+            .replace(/(([A-Ga-b])(b|#)?)m7\/5(-|b)/,function(_,a) {
+                return a+"half-dim";
+            })
+            .replace(/(([A-Ga-b])(b|#)?)m7\(b5\)/,function(_,a) {
+                return a+"half-dim";
             })
 
-            formulas.rules.forEach(each => {
-                if(typeof each.rep == 'string') {
-                    noteArr = noteArr.replace(each.reg,each.rep)
-                } else {
-                    noteArr = noteArr.replace(each.reg,function() {
-                        let args = [].slice.call(arguments);
-                        return each.rep.apply(null,[triad].concat(args));
-                    })
+        let basenote, scale, scaleNumber = 0;
+        str = str.replace(/^([A-Ga-g](b|#)?)(.*)+/,function(a,chord,b,rest) {
+            basenote = chord.toUpperCase();
+            return rest;
+        });
+        str = str.replace(/^(maj|m)(.*)?/,function(_,minor,rest) {
+            rest = rest || '';
+            if(minor == 'maj') return minor+rest;
+            if(minor == 'm') scaleNumber = 1;
+            return rest;
+        });
+        scale = services.scale(basenote,scaleNumber);
+
+        let basechord = formulas.triad.slice().map(k => scale[k-1]);
+
+        if (!str.length) return basechord;
+        switch(str) {
+            case '7':
+                basechord.push(utils.voice(basenote,str));
+                return basechord;
+            case '7+':
+            case '7M':
+                basechord.push(utils.voice(basenote,"7#"));
+                return basechord;
+            default: 
+                if(str.length) {
+                    str = str
+                        .replace(/(\/(\d+)(-|\+)?)/g,function(a,b,c,d) {
+                            let voice = (d?d=="-"?"b":"#":"")+c;
+                            basechord.push(utils.voice(basenote,voice))
+                            return '';
+                        })
+                        .replace(/(\/([A-Ga-g](#|b)?))/g,function(a,b,c) {
+                            basechord.unshift(c)
+                            return '';
+                        })
+                        .replace(/(half-dim)/g,function() {
+                            basechord = [
+                                basenote,
+                                utils.voice(basenote,"b3"),
+                                utils.voice(basenote,"b5"),
+                                utils.voice(basenote,"7")
+                            ];
+                            return '';
+                        })
+                        .replace(/(º|dim)/g,function() {
+                            let first = basechord.shift();
+                            basechord = [
+                                first,
+                                utils.voice(first,"b3"),
+                                utils.voice(first,"b5"),
+                                utils.voice(first,"b7")
+                            ];
+                            return '';
+                        })
+                        .replace(/(^\||\|\||\|$)/g,'')
                 }
-            })
-            noteArr = noteArr.split("|");
-            noteArr.shift(); // dominant note
-            triad = triad.concat(noteArr.map(variation => utils.voice(triad[0],variation)));
-            if(secondMajor) {
-                triad.unshift(secondMajor);
-            }
         }
-        return bemol? triad.map(each => utils.notation(each,true)):triad;
+        if(str.length > 0) {
+            basechord.push(utils.voice(basenote,str))
+        }
+
+        let cleaner = {};
+        basechord = basechord.filter(k => {
+            let w = !cleaner[k]
+            cleaner[k] = true;
+            return w;
+        });
+        return basechord;
     },
     scale: function(init="C", scaleType=0, bemol=false) {
         const string = utils.string(init,14,bemol)
@@ -144,7 +213,25 @@ const services = {
             ret.push(string[i]);
             count++;
         }
-        return ret.join(" ");
+        return ret;
     },
     tabs: () => tunning.slice().map(init => utils.string(init))
 }
+
+let sql = [ "Am",
+"B/A",
+"E",
+"A7/G",
+"Am7/G",
+"A6",
+"A6/9",
+"Dm7",
+"G",
+"G#º",
+"E7/9+",
+"F#m7/5-",
+"Bm7(b5)"
+]
+sql.map(chord => {
+    console.log(chord+": ",services.chord(chord).join(" "));
+})
